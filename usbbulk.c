@@ -101,11 +101,19 @@ void StartTransmit() {
 	TransmitCallback(usbd_dev,usb_outgoing_ep_addr);
 }
 
+//   void TxHandler(usbd_device *usbd_dev, uint8_t ep){
+	//   (void)ep;
+	//   if(bTransmitting){
+		//   TransmitCallback(usbd_dev,usb_outgoing_ep_addr);
+	//   }
+//   }
+
 void WaitTransmit() {
 	while (bTransmitting){
 		//   TransmitCallback(usbd_dev,usb_outgoing_ep_addr);
 		};
 	nTransmitLength = nTransmitOffset = 0;
+	usbd_ep_nak_set(usbd_dev,usb_incoming_ep_addr,0); // enable reception of data from host. command was processed previously
 }
 
 void RxHandler(usbd_device *usbd_dev, uint8_t ep){
@@ -121,6 +129,11 @@ void RxHandler(usbd_device *usbd_dev, uint8_t ep){
 	nReceiveLength += len;
 	if (len < 64) {
 		bReceiving = 0;
+		usbd_ep_nak_set(usbd_dev,usb_incoming_ep_addr,1); // disable reception of data from host.
+		
+		printf("RX buf :");
+		for (int i=nReceiveLength;i>0;i--)printf("%02X",pReceiveBuffer[nReceiveLength-i]);
+		printf("\n");
 	}
 }
 

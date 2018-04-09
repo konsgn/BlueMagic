@@ -11,7 +11,7 @@
 #include <libopencm3/stm32/usart.h>
 
 //Printf debug info?
-const bool pDEBUG = 1;
+const bool pDEBUG = 0;
 
 #define MODE_SPI	0
 #define MODE_JTAG	0xFFFF;
@@ -377,7 +377,7 @@ int main(void) {
 				StartTransmit();
 		}
 		//Get ready for the next packet
-		printf("PacketProcessed");
+		if(pDEBUG)printf("PacketProcessed");
 		nReceiveLength = 0;
 		bReceiving = 1;
 	}
