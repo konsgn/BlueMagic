@@ -27,7 +27,8 @@ extern const bool pDEBUG;
 //usb buffers
 #define BUFFER_SIZE	1024
 
-//usb protocol
+//usb protocol in usbbulk.c
+void RxFlow(uint8_t disable);
 void WaitTransmit(void);
 void StartTransmit(void);
 void USB_Init(void);

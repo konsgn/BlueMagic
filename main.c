@@ -250,7 +250,7 @@ int main(void) {
 	while (1) {
 		while (bReceiving){
 			//testing code:
-			WaitTransmit();
+			//   WaitTransmit();
 			//   CsrSpiDelay();
 			//   gpio_toggle(GPIOC,GPIO13);
 			}; //Wait until we're ready receiving data
@@ -373,13 +373,16 @@ int main(void) {
 					nOffset += 2; //Read the two inbetween bytes
 				}
 			}
-			if (nTransmitLength)
+			if (nTransmitLength){
 				StartTransmit();
+				WaitTransmit();
+			}
 		}
 		//Get ready for the next packet
-		if(pDEBUG)printf("PacketProcessed");
+		if(pDEBUG)printf("PacketProcessed\n");
 		nReceiveLength = 0;
 		bReceiving = 1;
+		RxFlow(0);//enable reception of data.
 	}
 }
 

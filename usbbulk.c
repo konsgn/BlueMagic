@@ -110,38 +110,47 @@ void StartTransmit() {
 
 void WaitTransmit() {
 	while (bTransmitting){
-		//   TransmitCallback(usbd_dev,usb_outgoing_ep_addr);
+		TransmitCallback(usbd_dev,usb_outgoing_ep_addr);
 		};
 	nTransmitLength = nTransmitOffset = 0;
-	usbd_ep_nak_set(usbd_dev,usb_incoming_ep_addr,0); // enable reception of data from host. command was processed previously
+}
+
+void RxFlow(uint8_t disable){
+	usbd_ep_nak_set(usbd_dev,usb_incoming_ep_addr,disable); // disable rx if true
 }
 
 void RxHandler(usbd_device *usbd_dev, uint8_t ep){
 	(void)ep;
+	
+	if (!bReceiving)return;
+	
 	int len = usbd_ep_read_packet(usbd_dev, usb_incoming_ep_addr, usbd_in_buff, 64);
 	
-		if (nReceiveLength + len > BUFFER_SIZE) {
+	if (nReceiveLength + len > BUFFER_SIZE) {
 		printf( "Buffer overflow\n");
 		return;
 	}
 	
-	memcpy(&pReceiveBuffer[nReceiveLength],usbd_in_buff,len);
-	nReceiveLength += len;
 	if (len < 64) {
 		bReceiving = 0;
-		usbd_ep_nak_set(usbd_dev,usb_incoming_ep_addr,1); // disable reception of data from host.
-		
-		printf("RX buf :");
-		for (int i=nReceiveLength;i>0;i--)printf("%02X",pReceiveBuffer[nReceiveLength-i]);
-		printf("\n");
+		RxFlow(1); // disable reception of data from host.
+		//   if ((len>0)){
+		if (pDEBUG&&(len>0)){
+			printf("RX buf :");
+			for (int i=len;i>0;i--)printf("%02X.",usbd_in_buff[len-i]);
+			printf("\n");
+		}
 	}
+	
+	memcpy(&pReceiveBuffer[nReceiveLength],usbd_in_buff,len);
+	nReceiveLength += len;
 }
 
 static void usbbulk_set_config(usbd_device *usbd_dev, uint16_t wValue)
 {
 	(void)wValue;
 	usbd_ep_setup(usbd_dev, usb_incoming_ep_addr, USB_ENDPOINT_ATTR_BULK, 64, RxHandler);
-	usbd_ep_setup(usbd_dev, usb_outgoing_ep_addr, USB_ENDPOINT_ATTR_BULK, 64, TransmitCallback); //set this up?
+	usbd_ep_setup(usbd_dev, usb_outgoing_ep_addr, USB_ENDPOINT_ATTR_BULK, 64, NULL); //set this up?
 	
 }
 

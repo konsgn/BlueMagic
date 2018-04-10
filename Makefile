@@ -70,7 +70,7 @@ $(BINARY).elf: $(OBJ)
 
 clean:	
 	$(Q)echo "  CLEAN"
-	-$(Q)$(RM) -f *.o *.d *.bin *.elf $(BINARY) mapfile
+	-$(Q)$(RM) -f *.o *.d *.hex *.elf $(BINARY) mapfile
 
 all: $(BINARY).bin $(BINARY).hex
 

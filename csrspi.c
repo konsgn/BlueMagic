@@ -62,6 +62,12 @@ void CsrInit() {
 	//   rcc_periph_clock_enable(RCC_GPIOC);
 	//   gpio_set(GPIOC,GPIO13);
 	
+	gpio_set_mode(GPIOA, GPIO_MODE_OUTPUT_2_MHZ,
+		GPIO_CNF_OUTPUT_PUSHPULL,
+		GPIO2); //PA2 is used for the spi_enable line if needed
+	
+	gpio_set(GPIOA,GPIO2);
+	
 	gpio_set_mode(CSR_PORT_BASE, GPIO_MODE_OUTPUT_50_MHZ,
 		GPIO_CNF_OUTPUT_PUSHPULL,
 		PIN_CS | PIN_MOSI | PIN_CLK | PIN_UNK);
