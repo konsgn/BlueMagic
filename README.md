@@ -9,7 +9,7 @@ The pinouts are as follows:
 
 | BluePill/STM32 PIN |BlackMagicProbe|CSR-SPI|
 |---------------------|---------------|-------|
-|PA3|TDI|MISO|
+|PA3|TDI|MOSI|
 |PA4|TMS|CS|
 |PA5|TCK|CLK|
-|PA6|TDO|MOSI|
+|PA6|TDO|MISO|
