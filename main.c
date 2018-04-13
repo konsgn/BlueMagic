@@ -9,6 +9,7 @@
 #include <libopencm3/stm32/exti.h>
 #include <libopencm3/stm32/gpio.h>
 #include <libopencm3/stm32/usart.h>
+#include <libopencm3/stm32/f1/adc.h>
 
 //Printf debug info?
 const bool pDEBUG = 0;
@@ -107,6 +108,47 @@ int _write(int file, char *ptr, int len)
 	return -1;
 }
 
+static void adc_init(void)
+{
+	rcc_periph_clock_enable(RCC_ADC1);
+
+	gpio_set_mode(GPIOB, GPIO_MODE_INPUT,
+			GPIO_CNF_INPUT_ANALOG, GPIO0);
+
+	adc_power_off(ADC1);
+	adc_disable_scan_mode(ADC1);
+	adc_set_single_conversion_mode(ADC1);
+	adc_disable_external_trigger_regular(ADC1);
+	adc_set_right_aligned(ADC1);
+	adc_set_sample_time_on_all_channels(ADC1, ADC_SMPR_SMP_28DOT5CYC);
+
+	adc_power_on(ADC1);
+
+	/* Wait for ADC starting up. */
+	for (int i = 0; i < 800000; i++)    /* Wait a bit. */
+		__asm__("nop");
+
+	adc_reset_calibration(ADC1);
+	adc_calibrate(ADC1);
+}
+
+uint8_t platform_target_voltage(void)
+{
+	uint8_t ret = 0;
+	const uint8_t channel = 8;
+	adc_set_regular_sequence(ADC1, 1, (uint8_t*)&channel);
+
+	adc_start_conversion_direct(ADC1);
+
+	/* Wait for end of conversion. */
+	while (!adc_eoc(ADC1));
+
+	uint32_t val = adc_read_regular(ADC1) * 99; /* 0-4095 */
+	ret = (val / 8191); // set tens digit
+	ret+= ((val / 8191) % 10);//set ones digit
+
+	return ret;
+}
 
 void exti15_10_isr(void)
 {
@@ -166,15 +208,26 @@ int main(void) {
 			GPIO_CNF_OUTPUT_PUSHPULL,
 			GPIO_PIN_LED_R | GPIO_PIN_LED_G | GPIO_PIN_LED_B);
 
-	/* Enable power on PWR_BR so that we do drive
-	   TPWR locally & advertently supply power to the target. */
-	gpio_clear(PWR_BR_PORT, PWR_BR_PIN);
-	gpio_set_mode(PWR_BR_PORT, GPIO_MODE_OUTPUT_2_MHZ,
-				  GPIO_CNF_OUTPUT_OPENDRAIN, PWR_BR_PIN);
+	adc_init();  
 
-	gpio_clear(GPIOB, GPIO0);
-	gpio_set_mode(GPIOB, GPIO_MODE_INPUT,
-			GPIO_CNF_INPUT_FLOAT, GPIO0);
+	//If there is no voltage seen by PB0, then enable 3.3V output, such as 
+	// blackmagic probe targeting a 1.8V target, or a blue pill board.
+	if (platform_target_voltage()<=10){
+		/* Enable power on PWR_BR so that we do drive
+		   TPWR locally & advertently supply power to the target. */	   
+		gpio_clear(PWR_BR_PORT, PWR_BR_PIN);
+		gpio_set_mode(PWR_BR_PORT, GPIO_MODE_OUTPUT_2_MHZ,
+					  GPIO_CNF_OUTPUT_OPENDRAIN, PWR_BR_PIN);
+
+		gpio_clear(GPIOB, GPIO0);
+		gpio_set_mode(GPIOB, GPIO_MODE_INPUT,
+				GPIO_CNF_INPUT_FLOAT, GPIO0);
+	}
+	else{
+		gpio_set(PWR_BR_PORT, PWR_BR_PIN);
+		gpio_set_mode(PWR_BR_PORT, GPIO_MODE_OUTPUT_2_MHZ,
+					  GPIO_CNF_OUTPUT_OPENDRAIN, PWR_BR_PIN);
+	}
 
 	// set GPIO of usb to low so that the device resets from usb initialization
 	gpio_clear(GPIOA, GPIO11);
