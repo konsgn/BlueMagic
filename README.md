@@ -22,5 +22,5 @@ On power up, if the BMP sees that there is already voltage greater that 1V at VC
 In this manner, the 1.8V of the target is used to power the translator in the BMP and the communication happens at 1.8V.
 
 ### Stuff to be careful of
-- Make sure reset is hard pulled to 3v3
+- ~~Make sure reset is hard pulled to 3v3~~
 - Use "pscli.exe warm_reset @sleep_disable" to make sure sleep is disabled, execute right away then do psr stuff
