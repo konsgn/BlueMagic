@@ -24,3 +24,14 @@ In this manner, the 1.8V of the target is used to power the translator in the BM
 ### Stuff to be careful of
 - ~~Make sure reset is hard pulled to 3v3~~
 - Use "pscli.exe warm_reset @sleep_disable" to make sure sleep is disabled, execute right away then do psr stuff
+
+### Tweaking code? Compiling it yourself?
+- Make sure you compile the libopencm3 libraries once before compiling the code yourself:
+```
+git submodule init;
+git submodule update;
+make -C libopencm3;
+```
+- keep :crossed_fingers:
+
+## Pull Requests are welcome!
